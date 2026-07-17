@@ -1,0 +1,19 @@
+services:
+  bot:
+    build: .
+    container_name: tamiel-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      # Persistir base de datos SQLite
+      - ./data:/app/data
+      # Persistir documentos adjuntos
+      - ./storage:/app/storage
+    # Limitar recursos para Raspberry Pi 5 (8 GB)
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M

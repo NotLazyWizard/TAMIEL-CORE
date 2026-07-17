@@ -1,0 +1,15 @@
+# === Bot de Telegram ===
+python-telegram-bot>=22.0,<23.0
+
+# === Base de datos ===
+SQLAlchemy>=2.0,<3.0
+
+# === IA (Groq API) ===
+groq>=0.25.0,<1.0
+
+# === Gmail API (OAuth2) ===
+google-auth-oauthlib>=1.2.0,<2.0
+google-api-python-client>=2.100.0,<3.0
+
+# === Configuración ===
+python-dotenv>=1.0.0,<2.0
