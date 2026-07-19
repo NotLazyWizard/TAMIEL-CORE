@@ -5,7 +5,9 @@ WORKDIR /app
 
 # Instalar dependencias del sistema mínimas
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc && \
+    apt-get install -y --no-install-recommends \
+        gcc \
+        libmagic1 && \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -18,6 +20,15 @@ WORKDIR /app
 
 # Copiar dependencias instaladas
 COPY --from=builder /install /usr/local
+
+# Instalar dependencias de sistema para OCR y detección de archivos
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        tesseract-ocr \
+        tesseract-ocr-spa \
+        libmagic1 \
+        antiword && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copiar código fuente
 COPY . .

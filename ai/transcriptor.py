@@ -2,31 +2,31 @@
 ai/transcriptor.py — Agente Transcriptor.
 
 Responsabilidad única: Audio → Texto.
-Usa el modelo Whisper disponible en Groq.
+Usa la interfaz LLMProvider para la transcripción.
 No realiza ningún otro procesamiento.
 """
 
 import logging
 from pathlib import Path
 
-from ai.groq_client import obtener_cliente
+from ai.groq_provider import obtener_llm_provider
 from config.settings import GROQ_MODEL_TRANSCRIPTOR
 
 logger = logging.getLogger(__name__)
 
 
 def transcribir_audio(ruta_audio: str | Path) -> str:
-    """Transcribe un archivo de audio a texto usando Groq (Whisper).
-    
+    """Transcribe un archivo de audio a texto usando el proveedor LLM.
+
     Args:
         ruta_audio: Ruta al archivo de audio (OGG, MP3, WAV, etc.)
-    
+
     Returns:
         Texto transcrito del audio.
-    
+
     Raises:
         FileNotFoundError: Si el archivo de audio no existe.
-        Exception: Si hay un error en la API de Groq.
+        Exception: Si hay un error en la API del proveedor.
     """
     ruta = Path(ruta_audio)
 
@@ -38,17 +38,8 @@ def transcribir_audio(ruta_audio: str | Path) -> str:
         ruta.name, GROQ_MODEL_TRANSCRIPTOR
     )
 
-    cliente = obtener_cliente()
+    provider = obtener_llm_provider(model_transcriptor=GROQ_MODEL_TRANSCRIPTOR)
+    texto = provider.transcribe_audio(ruta, language="es")
 
-    with open(ruta, "rb") as archivo_audio:
-        transcripcion = cliente.audio.transcriptions.create(
-            model=GROQ_MODEL_TRANSCRIPTOR,
-            file=archivo_audio,
-            language="es",
-            response_format="text",
-        )
-
-    texto = transcripcion.strip() if isinstance(transcripcion, str) else transcripcion.text.strip()
     logger.info("Transcripción completada: %d caracteres.", len(texto))
-
     return texto

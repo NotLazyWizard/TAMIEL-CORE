@@ -9,7 +9,7 @@ import json
 import logging
 import re
 
-from ai.groq_client import obtener_cliente
+from ai.groq_provider import obtener_llm_provider
 from config.settings import GROQ_MODEL_REDACTOR
 
 logger = logging.getLogger(__name__)
@@ -58,8 +58,6 @@ def redactar_correo(
     Raises:
         ValueError: Si el LLM no devuelve un JSON válido.
     """
-    mensajes = [{"role": "system", "content": SYSTEM_PROMPT}]
-
     # Construir el prompt del usuario
     if borrador_anterior and feedback:
         # Iteración con feedback
@@ -74,20 +72,17 @@ def redactar_correo(
         # Primera redacción
         prompt_usuario = f"Redacta un correo basado en esta instrucción:\n\n{texto}"
 
-    mensajes.append({"role": "user", "content": prompt_usuario})
 
     logger.info("Enviando al redactor (modelo: %s)...", GROQ_MODEL_REDACTOR)
 
-    cliente = obtener_cliente()
+    provider = obtener_llm_provider(model=GROQ_MODEL_REDACTOR)
 
-    respuesta = cliente.chat.completions.create(
-        model=GROQ_MODEL_REDACTOR,
-        messages=mensajes,
+    contenido = provider.generate_text(
+        system_prompt=SYSTEM_PROMPT,
+        user_prompt=prompt_usuario,
         temperature=0.3,
         max_tokens=2000,
     )
-
-    contenido = respuesta.choices[0].message.content.strip()
     logger.debug("Respuesta del redactor: %s", contenido[:200])
 
     # Limpiar posible markdown del LLM

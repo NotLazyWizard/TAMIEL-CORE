@@ -32,6 +32,7 @@ DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{DATA_DIR / 'usuario.d
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 GROQ_MODEL_TRANSCRIPTOR: str = os.getenv("GROQ_MODEL_TRANSCRIPTOR", "whisper-large-v3")
 GROQ_MODEL_REDACTOR: str = os.getenv("GROQ_MODEL_REDACTOR", "meta-llama/llama-4-scout-17b-16e-instruct")
+GROQ_MODEL_KNOWLEDGE: str = os.getenv("GROQ_MODEL_KNOWLEDGE", "meta-llama/llama-4-scout-17b-16e-instruct")
 
 # ─── Telegram ─────────────────────────────────────────────────────
 TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -52,10 +53,15 @@ GMAIL_REMITENTE: str = os.getenv("GMAIL_REMITENTE", "")
 MAX_REWRITE_ATTEMPTS: int = int(os.getenv("MAX_REWRITE_ATTEMPTS", "5"))
 LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
+# ─── Procesamiento de documentos ──────────────────────────────────
+DOC_MAX_TOKENS_LLM: int = int(os.getenv("DOC_MAX_TOKENS_LLM", "8000"))
+DOC_PROCESSING_ENABLED: bool = os.getenv("DOC_PROCESSING_ENABLED", "true").lower() == "true"
+
 # ─── Tipos de archivo soportados ──────────────────────────────────
 EXTENSIONES_PERMITIDAS: set[str] = {
-    "pdf", "docx", "xlsx", "pptx", "txt",
-    "png", "jpg", "jpeg",
+    "pdf", "docx", "doc", "xlsx", "ods", "pptx", "odp", "txt",
+    "csv", "md", "html",
+    "png", "jpg", "jpeg", "webp",
 }
 
 # ─── Validación ───────────────────────────────────────────────────
