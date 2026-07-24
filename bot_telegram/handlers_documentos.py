@@ -450,7 +450,12 @@ def crear_wizard_documento() -> ConversationHandler:
     """
     return ConversationHandler(
         entry_points=[
-            CommandHandler("añadir_documento", wizard_inicio),
+            # CommandHandler no acepta caracteres no-ASCII (ñ),
+            # así que usamos MessageHandler con Regex.
+            MessageHandler(
+                filters.TEXT & filters.Regex(r"^/añadir_documento"),
+                wizard_inicio,
+            ),
         ],
         states={
             ESPERANDO_DOCUMENTO: [
@@ -468,7 +473,10 @@ def crear_wizard_documento() -> ConversationHandler:
             ],
         },
         fallbacks=[
-            CommandHandler("cancelar", wizard_cancelar),
+            MessageHandler(
+                filters.TEXT & filters.Regex(r"^/cancelar$"),
+                wizard_cancelar,
+            ),
         ],
         conversation_timeout=300,  # 5 minutos de inactividad → cancelar
         name="wizard_documento",

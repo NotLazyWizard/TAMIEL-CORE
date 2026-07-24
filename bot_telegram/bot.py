@@ -31,7 +31,7 @@ from bot_telegram.handlers_destinatarios import (
 from bot_telegram.handlers_documentos import (
     cmd_documentos,
     cmd_ver_documento,
-    cmd_añadir_documento,
+    crear_wizard_documento,
     cmd_reprocesar_documento,
 )
 from bot_telegram.handlers_correo import (
@@ -79,16 +79,15 @@ def _registrar_handlers(app: Application) -> None:
     app.add_handler(CommandHandler("nuevo_destinatario", cmd_nuevo_destinatario))
     app.add_handler(CommandHandler("documentos", cmd_documentos))
 
-    # ── Notas de voz ──────────────────────────────────────────────
+    # ── Notas de voz ──────────────────────────────────────────
     app.add_handler(MessageHandler(filters.VOICE, manejar_nota_voz))
 
-    # ── Documentos adjuntos con caption /añadir_documento ─────────
-    app.add_handler(MessageHandler(
-        filters.Document.ALL & filters.CaptionRegex(r"^/añadir_documento"),
-        cmd_añadir_documento,
-    ))
+    # ── Wizard conversacional: /añadir_documento ─────────────────
+    # Debe registrarse ANTES de los comandos dinámicos para que
+    # /cancelar dentro del wizard no sea capturado por el router.
+    app.add_handler(crear_wizard_documento())
 
-    # ── Comandos dinámicos (con ID) ───────────────────────────────
+    # ── Comandos dinámicos (con ID) ───────────────────────────
     app.add_handler(MessageHandler(
         filters.TEXT & filters.Regex(r"^/(cancelar|feedback|correo|enviar|documento|reprocesar)_\d+"),
         _manejar_comando_dinamico,
