@@ -24,6 +24,7 @@ from services.resolucion_service import (
     ResultadoResolucion,
     formatear_problemas_resolucion,
 )
+from services import document_repository as doc_repo
 
 logger = logging.getLogger(__name__)
 
@@ -229,9 +230,13 @@ def _resolver_entidades(
     resultado.res_documentos = res_docs
 
     if res_docs.resueltos:
+        # Legacy: mantener string de IDs para compatibilidad
         correo.documentos = ", ".join(
             str(d["id"]) for d in res_docs.resueltos
         )
+        # Nuevo: escribir en tabla puente CorreoDocumentos
+        for d in res_docs.resueltos:
+            doc_repo.vincular_documento_correo(db, correo.id, d["id"])
 
     db.commit()
 

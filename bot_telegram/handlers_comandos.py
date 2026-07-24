@@ -41,7 +41,8 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "📎 *Documentos:*\n"
         "• `/documentos` — Ver documentos disponibles\n"
         "• `/documento_ID` — Ver/descargar documento\n"
-        "• `/añadir_documento titulo tipo` + archivo adjunto\n\n"
+        "• `/añadir_documento título` + archivo adjunto\n"
+        "• `/reprocesar_ID` — Reprocesar documento con error\n\n"
         "⚙️ *Sistema:*\n"
         "• `/tokens` — Verificar cuota de Groq\n"
         "• `/flujo` — Ver flujo del sistema\n",

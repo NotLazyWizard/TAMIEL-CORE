@@ -32,6 +32,7 @@ from bot_telegram.handlers_documentos import (
     cmd_documentos,
     cmd_ver_documento,
     cmd_añadir_documento,
+    cmd_reprocesar_documento,
 )
 from bot_telegram.handlers_correo import (
     manejar_nota_voz,
@@ -89,7 +90,7 @@ def _registrar_handlers(app: Application) -> None:
 
     # ── Comandos dinámicos (con ID) ───────────────────────────────
     app.add_handler(MessageHandler(
-        filters.TEXT & filters.Regex(r"^/(cancelar|feedback|correo|enviar|documento)_\d+"),
+        filters.TEXT & filters.Regex(r"^/(cancelar|feedback|correo|enviar|documento|reprocesar)_\d+"),
         _manejar_comando_dinamico,
     ))
 
@@ -125,3 +126,7 @@ async def _manejar_comando_dinamico(
     elif texto.startswith("/documento_"):
         doc_id = extraer_id(texto, "/documento_")
         await cmd_ver_documento(update, context, doc_id)
+
+    elif texto.startswith("/reprocesar_"):
+        doc_id = extraer_id(texto, "/reprocesar_")
+        await cmd_reprocesar_documento(update, context, doc_id)

@@ -15,6 +15,7 @@ from telegram.ext import ContextTypes
 from config.database import (
     SessionLocal, Correos, Documentos, EstadoCorreo,
 )
+from services import document_repository as doc_repo
 from config.settings import TELEGRAM_ADMIN_CHAT_ID, MAX_REWRITE_ATTEMPTS
 from services.correo_service import (
     procesar_nota_voz,
@@ -29,6 +30,39 @@ logger = logging.getLogger(__name__)
 
 def _es_admin(update: Update) -> bool:
     return update.effective_chat.id == TELEGRAM_ADMIN_CHAT_ID
+
+
+def _obtener_adjuntos_correo(correo: Correos, db) -> list[Documentos]:
+    """Obtiene los documentos adjuntos de un correo.
+
+    Primero consulta la tabla puente CorreoDocumentos.
+    Si no hay resultados (datos pre-migración), usa el fallback
+    del campo string correo.documentos con split(',').
+
+    Args:
+        correo: Instancia del correo.
+        db: Sesión de base de datos.
+
+    Returns:
+        Lista de documentos adjuntos.
+    """
+    # Intento 1: tabla relacional
+    documentos = doc_repo.obtener_documentos_correo(db, correo.id)
+    if documentos:
+        return documentos
+
+    # Fallback: campo string legacy
+    if correo.documentos:
+        resultado = []
+        for doc_id_str in correo.documentos.split(","):
+            doc_id_str = doc_id_str.strip()
+            if doc_id_str.isdigit():
+                doc = db.get(Documentos, int(doc_id_str))
+                if doc:
+                    resultado.append(doc)
+        return resultado
+
+    return []
 
 
 # ─── Handler principal: Nota de voz ──────────────────────────────
@@ -301,19 +335,15 @@ async def cmd_ver_correo(
                 )
 
         # Enviar documentos adjuntos si existen
-        if correo.documentos:
-            for doc_id_str in correo.documentos.split(","):
-                doc_id_str = doc_id_str.strip()
-                if not doc_id_str.isdigit():
-                    continue
-                documento = db.get(Documentos, int(doc_id_str))
-                if documento and Path(documento.ruta).exists():
-                    with open(documento.ruta, "rb") as doc_file:
-                        await update.message.reply_document(
-                            document=doc_file,
-                            filename=f"{documento.titulo_original}.{documento.tipo}",
-                            caption=f"📎 Adjunto: {documento.titulo_original}",
-                        )
+        adjuntos = _obtener_adjuntos_correo(correo, db)
+        for documento in adjuntos:
+            if Path(documento.ruta).exists():
+                with open(documento.ruta, "rb") as doc_file:
+                    await update.message.reply_document(
+                        document=doc_file,
+                        filename=f"{documento.titulo_original}.{documento.tipo}",
+                        caption=f"📎 Adjunto: {documento.titulo_original}",
+                    )
     finally:
         db.close()
 
@@ -366,14 +396,9 @@ async def cmd_enviar_correo(
 
         # Obtener rutas de adjuntos
         adjuntos: list[str] = []
-        if correo.documentos:
-            for doc_id_str in correo.documentos.split(","):
-                doc_id_str = doc_id_str.strip()
-                if not doc_id_str.isdigit():
-                    continue
-                documento = db.get(Documentos, int(doc_id_str))
-                if documento and Path(documento.ruta).exists():
-                    adjuntos.append(documento.ruta)
+        for documento in _obtener_adjuntos_correo(correo, db):
+            if Path(documento.ruta).exists():
+                adjuntos.append(documento.ruta)
 
         # Enviar via Gmail API
         from gmail.sender import enviar_correo_gmail
