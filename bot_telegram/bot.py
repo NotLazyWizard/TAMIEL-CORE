@@ -1,8 +1,9 @@
 """
 bot_telegram/bot.py — Configuración del bot y registro de handlers.
 
-Centraliza la creación de la Application de Telegram
-y registra todos los handlers de los submódulos.
+Centraliza la creación de la Application de Telegram,
+registra todos los handlers de los submódulos
+y configura la persistencia SQLite para estados conversacionales.
 """
 
 import logging
@@ -42,6 +43,7 @@ from bot_telegram.handlers_correo import (
     cmd_enviar_correo,
 )
 from utils.helpers import extraer_id
+from bot_telegram.persistence import SQLitePersistence
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +62,13 @@ def crear_aplicacion() -> Application:
             "TELEGRAM_BOT_TOKEN no está configurado. Revisa tu archivo .env"
         )
 
-    app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    persistence = SQLitePersistence()
+    app = (
+        Application.builder()
+        .token(TELEGRAM_BOT_TOKEN)
+        .persistence(persistence)
+        .build()
+    )
     _registrar_handlers(app)
 
     logger.info("Bot de Telegram configurado correctamente.")

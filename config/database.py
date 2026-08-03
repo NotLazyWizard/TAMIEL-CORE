@@ -9,6 +9,7 @@ Tablas:
     - DocumentoPaginas: Texto por páginas/secciones
     - DocumentoKnowledge: Conocimiento generado por IA
     - CorreoDocumentos: Tabla puente correo ↔ documento
+    - BotPersistencia: Estado conversacional persistente del bot
 """
 
 from sqlalchemy import (
@@ -197,6 +198,27 @@ class CorreoDocumentos(Base):
 
     correo    = relationship("Correos", back_populates="adjuntos_rel")
     documento = relationship("Documentos", back_populates="correos_rel")
+
+
+class BotPersistencia(Base):
+    """Estado conversacional persistente del bot.
+
+    Tabla genérica clave-valor que almacena:
+    - Estados de ConversationHandler (tipo='conversation')
+    - Datos de usuario por chat (tipo='user_data')
+
+    Permite que las conversaciones sobrevivan reinicios del bot,
+    del contenedor Docker o de la Raspberry Pi.
+    """
+
+    __tablename__ = "bot_persistencia"
+
+    id                  = Column(Integer, primary_key=True, index=True)
+    tipo                = Column(String, nullable=False)
+    clave               = Column(String, nullable=False)
+    valor               = Column(Text, nullable=False)
+    fecha_actualizacion = Column(DateTime, default=lambda: datetime.now(timezone.utc),
+                                 onupdate=lambda: datetime.now(timezone.utc))
 
 
 # ─── Inicialización y migraciones ─────────────────────────────────

@@ -478,9 +478,9 @@ def crear_wizard_documento() -> ConversationHandler:
                 wizard_cancelar,
             ),
         ],
-        conversation_timeout=300,  # 5 minutos de inactividad → cancelar
+        conversation_timeout=300,  # 5 minutos de inactividad → timeout
         name="wizard_documento",
-        persistent=False,
+        persistent=True,
     )
 
 
